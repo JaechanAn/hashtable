@@ -16,7 +16,7 @@ Node* init_node() {
     return node;
 }
 
-HashTable* create_hashtable(int size) {
+HashTable* hashtable_create(int size) {
     assert(size > 0);
 
     HashTable* table = (HashTable*)malloc(sizeof(HashTable));
@@ -40,7 +40,7 @@ HashTable* create_hashtable(int size) {
     return table;
 }
 
-int free_hashtable(HashTable* table) {
+int hashtable_free(HashTable* table) {
     assert(table != NULL);
 
     for (int i = 0; i < table->size; ++i) {
@@ -56,7 +56,7 @@ int free_hashtable(HashTable* table) {
     return 0;
 }
 
-Node* insert_hashtable(HashTable* table, int key) {
+Node* hashtable_insert(HashTable* table, int key) {
     assert(table != NULL);
     assert(key >= 0);
 
@@ -83,7 +83,7 @@ Node* insert_hashtable(HashTable* table, int key) {
     return new_node;
 }
 
-Node* lookup_hashtable(HashTable* table, int key) {
+Node* hashtable_lookup(HashTable* table, int key) {
     assert(table != NULL);
     assert(key >= 0);
 
@@ -102,7 +102,7 @@ Node* lookup_hashtable(HashTable* table, int key) {
     return NULL;
 }
 
-int delete_hashtable(HashTable* table, int key) {
+int hashtable_delete(HashTable* table, int key) {
     assert(table != NULL);
     assert(key >= 0);
 
@@ -136,7 +136,7 @@ int delete_hashtable(HashTable* table, int key) {
     return 0;
 }
 
-void print_hashtable(HashTable* table) {
+void hashtable_print(HashTable* table) {
     assert(table != NULL);
 
     for (int i = 0; i < table->size; ++i) {

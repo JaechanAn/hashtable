@@ -8,7 +8,7 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 set(SERVER_TESTS
-  basic_test.cc
+  hashtable_test.cc
   )
 
 add_executable(server_test ${SERVER_TESTS})

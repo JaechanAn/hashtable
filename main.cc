@@ -11,27 +11,27 @@ int main(int argc, char** argv) {
 
     int hashtable_size = atoi(argv[1]);
 
-    HashTable* table = create_hashtable(hashtable_size);
+    HashTable* table = hashtable_create(hashtable_size);
     if (table == NULL) {
         fprintf(stderr, "Failed to create hash table with %d buckets.", hashtable_size);
     }
 
     for (int i = 0; i < 15; ++i) {
-        insert_hashtable(table, i);
+        hashtable_insert(table, i);
     }
 
-    print_hashtable(table);
+    hashtable_print(table);
 
     int lookup_keys[3] = {1, 5, 18};
     for (int i = 0; i < 3; ++i) {
-        Node* node = lookup_hashtable(table, lookup_keys[i]);
+        Node* node = hashtable_lookup(table, lookup_keys[i]);
         if (node != NULL) {
             printf("Found key {%d}!\n", lookup_keys[i]);
         } else {
             printf("Did not find key {%d}!\n", lookup_keys[i]);
         }
 
-        int deleted = delete_hashtable(table, lookup_keys[i]);
+        int deleted = hashtable_delete(table, lookup_keys[i]);
         if (deleted == 0) {
             printf("Deleted key {%d}!\n", lookup_keys[i]);
         } else {
@@ -39,9 +39,9 @@ int main(int argc, char** argv) {
         }
     }
 
-    print_hashtable(table);
+    hashtable_print(table);
 
-    int freed = free_hashtable(table);
+    int freed = hashtable_free(table);
     if (freed != 0) {
         fprintf(stderr, "Failed to free hash table.");
     }
