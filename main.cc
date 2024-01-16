@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "hashtable.h"
 
@@ -8,6 +9,9 @@ int main(int argc, char** argv) {
         fprintf(stderr, "Usage: %s <hashtable_size>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
+
+    long ncores = sysconf(_SC_NPROCESSORS_ONLN);
+    printf("ncores: %ld\n", ncores);
 
     int hashtable_size = atoi(argv[1]);
 

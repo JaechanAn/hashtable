@@ -1,6 +1,8 @@
 #ifndef HASHTABLE_H_
 #define HASHTABLE_H_
 
+#include <pthread.h>
+
 typedef struct Node {
     int key;            // currently supports integer key only
     struct Node* next;  // next pointer for handling linked list style chaining
@@ -10,7 +12,10 @@ Node* init_node(void);
 
 typedef struct HashTable {
     Node** buckets;  // represents the table buckets
-    int size;
+    int size;        // represents the bucket size, not the number of items
+#ifdef COARSE_GRAINED_LOCKING
+    pthread_rwlock_t* bucket_locks;
+#endif /* COARSE_GRAINED_LOCKING */
 } HashTable;
 
 /*

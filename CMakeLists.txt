@@ -19,15 +19,18 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 option(USE_SERVER "Use the Server library" ON)
 option(USE_GOOGLE_TEST "Use GoogleTest for testing" ON)
 
+# Enable or disable to change concurrency policy
+add_compile_definitions(COARSE_GRAINED_LOCKING)
+
 # Server project library
 if(USE_SERVER)
-  add_subdirectory(server)
-  list(APPEND EXTRA_LIBS server)
+    add_subdirectory(server)
+    list(APPEND EXTRA_LIBS server)
 endif()
 
 # GoogleTest
 if(USE_GOOGLE_TEST)
-  add_subdirectory(test)
+    add_subdirectory(test)
 endif()
 
 add_executable(${CMAKE_PROJECT_NAME} main.cc)
@@ -35,6 +38,6 @@ add_executable(${CMAKE_PROJECT_NAME} main.cc)
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC ${EXTRA_LIBS})
 
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC
-  "${PROJECT_BINARY_DIR}"
-  )
+    "${PROJECT_BINARY_DIR}"
+    )
 
