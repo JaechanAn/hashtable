@@ -154,24 +154,6 @@ void* delete_one_func(void* thd_args) {
     pthread_exit(NULL);
 }
 
-void* delete_func(void* id) {
-    long thd_id = (long)id;
-
-    for (int i = 0; i < 10000; ++i) {
-    }
-
-    pthread_exit(NULL);
-}
-
-void* lookup_func(void* id) {
-    long thd_id = (long)id;
-
-    for (int i = 0; i < 10000; ++i) {
-    }
-
-    pthread_exit(NULL);
-}
-
 /*
  * Test concurrent insertion
  * 1. Insert key '1' with {number of cores * 2} threads.

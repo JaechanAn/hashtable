@@ -33,6 +33,7 @@ if(USE_GOOGLE_TEST)
     add_subdirectory(test)
 endif()
 
+# Server program
 add_executable(${CMAKE_PROJECT_NAME} main.cc)
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC ${EXTRA_LIBS})
@@ -40,4 +41,15 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC ${EXTRA_LIBS})
 target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC
     "${PROJECT_BINARY_DIR}"
     )
+
+# Benchmark program
+set(BENCHMARK_PROJECT_NAME benchmark)
+add_executable(${BENCHMARK_PROJECT_NAME} benchmark.cc)
+
+target_link_libraries(${BENCHMARK_PROJECT_NAME} PUBLIC ${EXTRA_LIBS})
+
+target_include_directories(${BENCHMARK_PROJECT_NAME} PUBLIC
+    "${PROJECT_BINARY_DIR}"
+    )
+
 
