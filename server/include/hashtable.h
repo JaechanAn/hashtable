@@ -30,6 +30,9 @@ HashTable* hashtable_create(int size);
 // Must be called at the termination process by the main thread.
 int hashtable_free(HashTable* table);
 
+// Returns the hash value representing the bucket index;
+int hash_func(int key, int size);
+
 // Insert a new item into the hash table.
 // Returns NULL on duplicate item.
 Node* hashtable_insert(HashTable* table, int key);

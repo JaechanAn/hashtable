@@ -127,6 +127,7 @@ protected:
 typedef struct ThreadArgs {
     int id;
     HashTable* table;
+    int result;  // Should use pthread exit but since lack of time, use argument passing.
 } ThreadArgs;
 
 void* insert_one_func(void* thd_args) {
@@ -135,6 +136,20 @@ void* insert_one_func(void* thd_args) {
     HashTable* table = args->table;
 
     Node* node = hashtable_insert(table, 1);
+
+    int ret = (node == NULL) ? -1 : 0;  // TODO: change to a more common form.
+    args->result = ret;
+
+    pthread_exit(NULL);
+}
+
+void* delete_one_func(void* thd_args) {
+    ThreadArgs* args = (ThreadArgs*)thd_args;
+    int id = args->id;
+    HashTable* table = args->table;
+
+    int result = hashtable_delete(table, 1);
+    args->result = result;
 
     pthread_exit(NULL);
 }
@@ -161,21 +176,58 @@ void* lookup_func(void* id) {
  * Test concurrent insertion
  * 1. Insert key '1' with {number of cores * 2} threads.
  * 2. Wait until all operation is done.
- * 3. Check if only one item is inserted.
+ * 3. Check if only one thread succeeded in inserting.
  */
 TEST_F(HashTableConcurrencyTest, Insert) {
     int num_threads = ncores * 2;
 
     pthread_t threads[num_threads];
+    ThreadArgs args[num_threads];
 
     for (int i = 0; i < num_threads; i++) {
-        ThreadArgs args;
-        args.id = i;
-        args.table = table;
-        pthread_create(&threads[i], NULL, insert_one_func, (void**)&args);
+        args[i].id = i;
+        args[i].table = table;
+        pthread_create(&threads[i], NULL, insert_one_func, (void**)&args[i]);
     }
 
+    int cnt = 0;
     for (int i = 0; i < num_threads; i++) {
         pthread_join(threads[i], NULL);
+        if (args[i].result == 0) {
+            ++cnt;
+        }
     }
+    ASSERT_EQ(cnt, 1);  // Only one item should succeed in inserting.
+}
+
+/*
+ * Test concurrent deletion
+ * 1. Insert key '1'.
+ * 2. Delete key '1' with {number of cores * 2} threads.
+ * 3. Wait until all operation is done.
+ * 4. Check if only one thread succeeded in deleting.
+ */
+TEST_F(HashTableConcurrencyTest, Delete) {
+    int num_threads = ncores * 2;
+
+    pthread_t threads[num_threads];
+    ThreadArgs args[num_threads];
+
+    Node* node = hashtable_insert(table, 1);
+    ASSERT_TRUE(node != NULL);
+
+    for (int i = 0; i < num_threads; i++) {
+        args[i].id = i;
+        args[i].table = table;
+        pthread_create(&threads[i], NULL, delete_one_func, (void**)&args[i]);
+    }
+
+    int cnt = 0;
+    for (int i = 0; i < num_threads; i++) {
+        pthread_join(threads[i], NULL);
+        if (args[i].result == 0) {
+            ++cnt;
+        }
+    }
+    ASSERT_EQ(cnt, 1);  // Only one item should succeed in deleting.
 }

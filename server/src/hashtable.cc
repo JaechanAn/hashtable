@@ -67,11 +67,16 @@ int hashtable_free(HashTable* table) {
     return 0;
 }
 
+int hash_func(int key, int size) {
+    // currently use modulo operation
+    return key % size;
+}
+
 Node* hashtable_insert(HashTable* table, int key) {
     assert(table != NULL);
     assert(key >= 0);
 
-    int index = key % table->size;  // hash function is modulo operation
+    int index = hash_func(key, table->size);
     Node* bucket = table->buckets[index];
 
 #ifdef COARSE_GRAINED_LOCKING
@@ -109,7 +114,7 @@ Node* hashtable_lookup(HashTable* table, int key) {
     assert(table != NULL);
     assert(key >= 0);
 
-    int index = key % table->size;  // hash function is modulo operation
+    int index = hash_func(key, table->size);
     Node* bucket = table->buckets[index];
 
 #ifdef COARSE_GRAINED_LOCKING
@@ -143,7 +148,7 @@ int hashtable_delete(HashTable* table, int key) {
     assert(table != NULL);
     assert(key >= 0);
 
-    int index = key % table->size;  // hash function is modulo operation
+    int index = hash_func(key, table->size);
     Node* bucket = table->buckets[index];
 
 #ifdef COARSE_GRAINED_LOCKING
