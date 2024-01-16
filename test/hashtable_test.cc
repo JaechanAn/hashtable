@@ -101,6 +101,7 @@ TEST_F(HashTableBasicTest, Delete) {
     ASSERT_EQ(should_fail, -1);
 }
 
+#if defined(COARSE_GRAINED_LOCKING) || defined(FINE_GRAINED_LOCKING)
 /*
  * TestFixture for hash table concurrency test
  */
@@ -213,3 +214,4 @@ TEST_F(HashTableConcurrencyTest, Delete) {
     }
     ASSERT_EQ(cnt, 1);  // Only one item should succeed in deleting.
 }
+#endif

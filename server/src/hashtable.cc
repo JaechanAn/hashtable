@@ -12,6 +12,13 @@ Node* init_node() {
     node->key = -1;
     node->next = NULL;
 
+#ifdef FINE_GRAINED_LOCKING
+    node->lock = (pthread_rwlock_t*)malloc(sizeof(pthread_rwlock_t));
+    assert(node->lock != NULL);
+
+    pthread_rwlock_init(node->lock, NULL);
+#endif /* FINE_GRAINED_LOCKING */
+
     return node;
 }
 
@@ -88,18 +95,30 @@ Node* hashtable_insert(HashTable* table, int key) {
 
 #ifdef COARSE_GRAINED_LOCKING
     pthread_rwlock_wrlock(&table->bucket_locks[index]);
-#endif /* COARSE_GRAINED_LOCKING */
+#elif FINE_GRAINED_LOCKING
+    pthread_rwlock_wrlock(bucket->lock);
+#endif
 
     Node* curr = bucket->next;
     Node* prev = bucket;
     while (curr != NULL) {
+#ifdef FINE_GRAINED_LOCKING
+        pthread_rwlock_wrlock(curr->lock);
+#endif
         if (curr->key == key) {
             // Found a duplicate key, just announce failure
 #ifdef COARSE_GRAINED_LOCKING
             pthread_rwlock_unlock(&table->bucket_locks[index]);
-#endif /* COARSE_GRAINED_LOCKING */
+#elif FINE_GRAINED_LOCKING
+            pthread_rwlock_unlock(prev->lock);
+            pthread_rwlock_unlock(curr->lock);
+#endif
             return NULL;
         }
+
+#ifdef FINE_GRAINED_LOCKING
+        pthread_rwlock_unlock(prev->lock);
+#endif
         prev = curr;
         curr = curr->next;
     }
@@ -112,7 +131,9 @@ Node* hashtable_insert(HashTable* table, int key) {
 
 #ifdef COARSE_GRAINED_LOCKING
     pthread_rwlock_unlock(&table->bucket_locks[index]);
-#endif /* COARSE_GRAINED_LOCKING */
+#elif FINE_GRAINED_LOCKING
+    pthread_rwlock_unlock(prev->lock);
+#endif
 
     return new_node;
 }
@@ -126,10 +147,17 @@ Node* hashtable_lookup(HashTable* table, int key) {
 
 #ifdef COARSE_GRAINED_LOCKING
     pthread_rwlock_rdlock(&table->bucket_locks[index]);
-#endif /* COARSE_GRAINED_LOCKING */
+#elif FINE_GRAINED_LOCKING
+    pthread_rwlock_rdlock(bucket->lock);
+
+    Node* prev = bucket;
+#endif
 
     Node* curr = bucket->next;
     while (curr != NULL) {
+#ifdef FINE_GRAINED_LOCKING
+        pthread_rwlock_rdlock(curr->lock);
+#endif
         if (curr->key == key) {
             // Found a match
 #ifdef COARSE_GRAINED_LOCKING
@@ -138,15 +166,25 @@ Node* hashtable_lookup(HashTable* table, int key) {
             // concurrent operation. However, returning the node is considered
             // the linearization point for success of lookup in this project.
             pthread_rwlock_unlock(&table->bucket_locks[index]);
-#endif /* COARSE_GRAINED_LOCKING */
+#elif FINE_GRAINED_LOCKING
+            pthread_rwlock_unlock(prev->lock);
+            pthread_rwlock_unlock(curr->lock);
+#endif
             return curr;
         }
+
+#ifdef FINE_GRAINED_LOCKING
+        pthread_rwlock_unlock(prev->lock);
+        prev = curr;
+#endif
         curr = curr->next;
     }
 
 #ifdef COARSE_GRAINED_LOCKING
     pthread_rwlock_unlock(&table->bucket_locks[index]);
-#endif /* COARSE_GRAINED_LOCKING */
+#elif FINE_GRAINED_LOCKING
+    pthread_rwlock_unlock(prev->lock);
+#endif
 
     return NULL;
 }
@@ -160,14 +198,22 @@ int hashtable_delete(HashTable* table, int key) {
 
 #ifdef COARSE_GRAINED_LOCKING
     pthread_rwlock_wrlock(&table->bucket_locks[index]);
-#endif /* COARSE_GRAINED_LOCKING */
+#elif FINE_GRAINED_LOCKING
+    pthread_rwlock_wrlock(bucket->lock);
+#endif
 
     Node* curr = bucket->next;
     Node* prev = bucket;
     while (curr != NULL) {
+#ifdef FINE_GRAINED_LOCKING
+        pthread_rwlock_wrlock(curr->lock);
+#endif
         if (curr->key == key) {
             break;
         }
+#if FINE_GRAINED_LOCKING
+        pthread_rwlock_unlock(prev->lock);
+#endif
         prev = curr;
         curr = curr->next;
     }
@@ -178,7 +224,9 @@ int hashtable_delete(HashTable* table, int key) {
         // Could not find a matching key
 #ifdef COARSE_GRAINED_LOCKING
         pthread_rwlock_unlock(&table->bucket_locks[index]);
-#endif /* COARSE_GRAINED_LOCKING */
+#elif FINE_GRAINED_LOCKING
+        pthread_rwlock_unlock(prev->lock);
+#endif
         return -1;
     }
 
@@ -189,7 +237,10 @@ int hashtable_delete(HashTable* table, int key) {
 #ifdef COARSE_GRAINED_LOCKING
     // release before physical deletion
     pthread_rwlock_unlock(&table->bucket_locks[index]);
-#endif /* COARSE_GRAINED_LOCKING */
+#elif FINE_GRAINED_LOCKING
+    pthread_rwlock_unlock(prev->lock);
+    pthread_rwlock_unlock(curr->lock);
+#endif
 
     // phyisical deletion
     free(curr);

@@ -10,6 +10,9 @@
 typedef struct Node {
     int key;            // currently supports integer key only
     struct Node* next;  // next pointer for handling linked list style chaining
+#ifdef FINE_GRAINED_LOCKING
+    pthread_rwlock_t* lock;
+#endif /* FINE_GRAINED_LOCKING */
 } Node;
 
 Node* init_node(void);
