@@ -15,6 +15,7 @@ For the simplicity of this toy project, we define some constraints for the hash 
 - A `key` represents an item within the hash table, where the value may only be a positive integer.
 - Since the number of items within the entire hash table is not specified, allocate dynamically.
 - Use modulo operation for hash function to determine the bucket.
+- Everthing is in-memory and does not support disk-based hash table.
 
 ### Representation Invariant
 The hash table should support the following instruction set with correctness defined as follows.
