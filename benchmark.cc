@@ -72,7 +72,7 @@ void* thread_func(void* thd_args) {
     HashTable* table = args->table;
 
     for (int i = 0; i < num_ops; ++i) {
-        int key = rand();
+        int key = rand();  // TODO: skewed workload test
         switch (type) {
             case Insert:
                 hashtable_insert(table, key);  // result doesn't matter
