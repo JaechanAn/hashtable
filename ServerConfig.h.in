@@ -1,0 +1,5 @@
+// The configured options and settings for this project
+#define Server_VERSION_MAJOR @Server_VERSION_MAJOR@
+#define Server_VERSION_MINOR @Server_VERSION_MINOR@
+#cmakedefine USE_SERVER
+#cmakedefine USE_GOOGLE_TEST
