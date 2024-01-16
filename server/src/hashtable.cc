@@ -1,7 +1,6 @@
 #include "hashtable.h"
 
 #include <assert.h>
-#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,6 +13,14 @@ Node* init_node() {
     node->next = NULL;
 
     return node;
+}
+
+size_t hashtable_estimate_size(size_t hashtable_size) {
+    size_t size = 0;
+
+    // size += sizeof(Node) * MAX_CHAIN_LENGTH * (hashtable_size + 1 /* sentinel head */);
+
+    return size;
 }
 
 HashTable* hashtable_create(int size) {

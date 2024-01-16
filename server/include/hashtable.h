@@ -2,6 +2,10 @@
 #define HASHTABLE_H_
 
 #include <pthread.h>
+#include <stddef.h>
+
+// TODO: support dynamic chain length combined with shared memory
+#define MAX_CHAIN_LENGTH (1000000)  // per bucket maximum collisions: 1M
 
 typedef struct Node {
     int key;            // currently supports integer key only
@@ -21,6 +25,7 @@ typedef struct HashTable {
 /*
  * Hash table control functions
  */
+size_t hashtable_estimate_size(size_t hashtable_size);
 
 // Create a hash table of the given size.
 // Must be called at the initialization process by the main thread.
