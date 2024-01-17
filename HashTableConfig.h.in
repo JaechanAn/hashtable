@@ -1,0 +1,5 @@
+// The configured options and settings for this project
+#define HashTable_VERSION_MAJOR @HashTable_VERSION_MAJOR@
+#define HashTable_VERSION_MINOR @HashTable_VERSION_MINOR@
+#cmakedefine USE_HASHTABLE
+#cmakedefine USE_GOOGLE_TEST

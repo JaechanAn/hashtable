@@ -7,18 +7,18 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
-set(SERVER_TESTS
+set(HASHTABLE_TESTS
   hashtable_test.cc
   )
 
-add_executable(server_test ${SERVER_TESTS})
+add_executable(hashtable_test ${HASHTABLE_TESTS})
 
 target_link_libraries(
-  server_test
-  server
+  hashtable_test
+  hashtable
   gtest_main
   )
 
 include(GoogleTest)
-gtest_discover_tests(server_test)
+gtest_discover_tests(hashtable_test)
 
