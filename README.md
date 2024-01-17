@@ -35,7 +35,7 @@ The linked list for handling the collisions within the hash table should support
 
 ### Design
 
-#### Option 1
+#### Option 1 - Naive Approach
 Lock individual buckets.
 
 <img width="602" alt="스크린샷 2024-01-16 오후 5 45 24" src="https://github.com/JaechanAn/hashtable_server/assets/13327840/54e60fe3-dd08-46c8-98cf-656a325ccf88">
@@ -57,4 +57,14 @@ Use hand-over-hand (i.e., chain) locking on access to each bucket's list instead
 <img width="797" alt="스크린샷 2024-01-16 오후 5 53 21" src="https://github.com/JaechanAn/hashtable_server/assets/13327840/848ebb22-7960-4edf-a087-82490f4c7472">
 
 ## Client / Server Communication
+
+## Evaluation
+
+### Naive Approach
+
+<img width="752" alt="image" src="https://github.com/JaechanAn/hashtable_server/assets/13327840/5ddd7128-9a32-4ab2-8a27-fb94001609e4">
+
+### Hand-over-hand locking
+
+<img width="755" alt="image" src="https://github.com/JaechanAn/hashtable_server/assets/13327840/112cbd90-cf41-4c24-93af-df4d3b62c2e1">
 
