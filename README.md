@@ -14,8 +14,10 @@
 For the simplicity of this toy project, we define some constraints for the hash table.
 - A `key` represents an item within the hash table, where the value may only be a positive integer.
 - Since the number of items within the entire hash table is not specified, allocate dynamically.
-- Use modulo operation for hash function to determine the bucket.
-- Everthing is in-memory and does not support disk-based hash table.
+- Use the modulo operation for the hash function to determine the bucket.
+- Everything is in-memory and does not support a disk-based hash table.
+- Dynamic shared memory is unsupported, only allow static sizing.
+- Shared memory is used only for IPC.
 
 ### Representation Invariant
 The linked list for handling the collisions within the hash table should support the following instruction set with correctness defined as follows.
@@ -38,10 +40,10 @@ Lock individual buckets.
 
 <img width="602" alt="스크린샷 2024-01-16 오후 5 45 24" src="https://github.com/JaechanAn/hashtable_server/assets/13327840/54e60fe3-dd08-46c8-98cf-656a325ccf88">
 
-** Pros **
+**Pros**
 - Works considerably well in cases with less contention
 
-** Cons **
+**Cons**
 - Managing multiple locks
 
 #### Option 2
@@ -53,4 +55,6 @@ Support a more coarse-grained locking on buckets by grouping multiple buckets to
 Use hand-over-hand (i.e., chain) locking on access to each bucket's list instead of using bucket based locking.
 
 <img width="797" alt="스크린샷 2024-01-16 오후 5 53 21" src="https://github.com/JaechanAn/hashtable_server/assets/13327840/848ebb22-7960-4edf-a087-82490f4c7472">
+
+## Client / Server Communication
 
