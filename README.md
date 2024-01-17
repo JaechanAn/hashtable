@@ -18,7 +18,12 @@ For the simplicity of this toy project, we define some constraints for the hash 
 - Everthing is in-memory and does not support disk-based hash table.
 
 ### Representation Invariant
-The hash table should support the following instruction set with correctness defined as follows.
+The linked list for handling the collisions within the hash table should support the following instruction set with correctness defined as follows.
+- Forbid duplicate keys for insertion.
+- If a key is inserted and never deleted, lookup should succeed.
+- If a key is deleted and never inserted, lookup should fail.
+- List doesn't have to be sorted.
+- Tail should be always reachable from the head.
 
 #### Insert
 
@@ -29,17 +34,23 @@ The hash table should support the following instruction set with correctness def
 ### Design
 
 #### Option 1
-Lock individual buckets.   
+Lock individual buckets.
 
 <img width="602" alt="스크린샷 2024-01-16 오후 5 45 24" src="https://github.com/JaechanAn/hashtable_server/assets/13327840/54e60fe3-dd08-46c8-98cf-656a325ccf88">
 
+** Pros **
+- Works considerably well in cases with less contention
+
+** Cons **
+- Managing multiple locks
+
 #### Option 2
-Support a more coarse-grained locking on buckets by grouping multiple buckets to the same lock.   
+Support a more coarse-grained locking on buckets by grouping multiple buckets to the same lock.
 
 <img width="609" alt="스크린샷 2024-01-16 오후 5 48 42" src="https://github.com/JaechanAn/hashtable_server/assets/13327840/36b0f18b-3975-46f5-921e-b380635c53d0">
 
 #### Option 3
-Use hand-over-hand (i.e., chain) locking on access to each bucket's list instead of using bucket based locking.   
+Use hand-over-hand (i.e., chain) locking on access to each bucket's list instead of using bucket based locking.
 
 <img width="797" alt="스크린샷 2024-01-16 오후 5 53 21" src="https://github.com/JaechanAn/hashtable_server/assets/13327840/848ebb22-7960-4edf-a087-82490f4c7472">
 
