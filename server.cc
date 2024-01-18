@@ -45,7 +45,7 @@ void* thread_func(void* thd_args) {
         Operation op;
         op = dequeue(queue);
 
-        printf("[Server %d] type: %d, key: %d\n", tid, (int)op.type, op.key);
+        // printf("[Server %d] type: %d, key: %d\n", tid, (int)op.type, op.key);
         switch (op.type) {
             case Insert:
                 hashtable_insert(table, op.key);

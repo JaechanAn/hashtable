@@ -38,7 +38,7 @@ void* thread_func(void* thd_args) {
     for (int i = 0; i < num_ops; i++) {
         int key = rand();
         OperationType type = (OperationType)(i % 3);  // Must match enum OperationType values
-        printf("[Client %d] type: %d, key: %d\n", tid, (int)type, key);
+        // printf("[Client %d] type: %d, key: %d\n", tid, (int)type, key);
         enqueue(queue, key, type);
     }
 
