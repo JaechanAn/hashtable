@@ -1,12 +1,18 @@
 # Hash Table Server
 
 ## Required Spec
+
+**Server**
 - Initialize a hash table of given size using command line (e.g., `./server 10`).
 - Support insertion of items in the hash table.
 - Hash table collisions are resolved by maintaining a linked list for each bucket/entry in the hash table.
 - Supports concurrent operations (multithreading) to perform `insert`, `delete`, `lookup` operations on the hash table.
 - Use readers-writer lock to ensure safety of concurrent operations, try to optimize the granularity.
 - Communicates with the client program using shared memory buffer (POSIX shm).
+
+**Client**
+- Enqueue operations (`insert`, `delete`, `lookup`) to the server and operate on the hash table via shared memory buffer (POSIX shm).
+
 
 ## Hash Table
 
