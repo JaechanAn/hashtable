@@ -114,6 +114,9 @@ Node* hashtable_insert(HashTable* table, int key) {
             pthread_rwlock_unlock(curr->lock);
 #endif
             return NULL;
+        } else if (curr->key > key) {
+            // Found a position to insert
+            break;
         }
 
 #ifdef FINE_GRAINED_LOCKING
@@ -127,12 +130,16 @@ Node* hashtable_insert(HashTable* table, int key) {
 
     Node* new_node = init_node();
     new_node->key = key;
+    new_node->next = curr;
     prev->next = new_node;
 
 #ifdef COARSE_GRAINED_LOCKING
     pthread_rwlock_unlock(&table->bucket_locks[index]);
 #elif FINE_GRAINED_LOCKING
     pthread_rwlock_unlock(prev->lock);
+    if (curr != NULL) {
+        pthread_rwlock_unlock(curr->lock);
+    }
 #endif
 
     return new_node;
@@ -171,6 +178,14 @@ Node* hashtable_lookup(HashTable* table, int key) {
             pthread_rwlock_unlock(curr->lock);
 #endif
             return curr;
+        } else if (curr->key > key) {
+            // Key Not found
+#ifdef COARSE_GRAINED_LOCKING
+            pthread_rwlock_unlock(&table->bucket_locks[index]);
+#elif FINE_GRAINED_LOCKING
+            pthread_rwlock_unlock(prev->lock);
+            pthread_rwlock_unlock(curr->lock);
+#endif
         }
 
 #ifdef FINE_GRAINED_LOCKING
@@ -210,6 +225,15 @@ int hashtable_delete(HashTable* table, int key) {
 #endif
         if (curr->key == key) {
             break;
+        } else if (curr->key > key) {
+            // Key not found.
+#ifdef COARSE_GRAINED_LOCKING
+            pthread_rwlock_unlock(&table->bucket_locks[index]);
+#elif FINE_GRAINED_LOCKING
+            pthread_rwlock_unlock(prev->lock);
+            pthread_rwlock_unlock(curr->lock);
+#endif
+            return -1;
         }
 #if FINE_GRAINED_LOCKING
         pthread_rwlock_unlock(prev->lock);
