@@ -71,6 +71,13 @@ Use hand-over-hand (i.e., chain) locking on access to each bucket's list instead
 Like other optimistic policies, try the operation without locking assuming that conflicts are rare.
 Then, resolve conflicts when they do occur during a validation phase.
 
+Example of delete
+1. Traverse without locks
+2. Lock the consecutive nodes, predecessor, and the node to remove.
+3. Check if the predecessor is still reachable from the head. (making sure that it wasn't removed before acquiring the lock)
+4. Check if the node to delete is still pointed by the predecessor.
+5. Remove the node and release locks.
+
 ## Evaluation
 
 ### Naive Approach
