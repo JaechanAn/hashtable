@@ -13,6 +13,7 @@
 **Client**
 - Enqueue operations (`insert`, `delete`, `lookup`) to the server and operate on the hash table via shared memory buffer (POSIX shm).
 
+## Overall Design
 
 ## Hash Table
 
@@ -30,8 +31,8 @@ The linked list for handling the collisions within the hash table should support
 - Forbid duplicate keys for insertion.
 - If a key is inserted and never deleted, lookup should succeed.
 - If a key is deleted and never inserted, lookup should fail.
-- List doesn't have to be sorted.
-- Tail should be always reachable from the head.
+- The list doesn't have to be sorted.
+- The tail should be always reachable from the head.
 
 #### Insert
 
