@@ -91,9 +91,9 @@ int main(int argc, char** argv) {
 
         pthread_create(&threads[i], 0, thread_func, (void**)&args[i]);
 
-        // Wait for the worker thread to fall asleep. Using spin wait seems enough.
+        // Wait for the worker thread to fall asleep. Using spin wait seems enough
         while (!args[i].is_ready) {
-            pthread_yield();
+            pthread_yield();  // yielding might be a bad idea since the term will be short
         }
     }
 
