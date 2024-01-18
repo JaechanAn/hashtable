@@ -15,7 +15,7 @@
 
 ## Overall Design
 
-<img width="1132" alt="스크린샷 2024-01-18 오후 2 21 20" src="https://github.com/JaechanAn/hashtable/assets/13327840/dbc3078e-a063-4ffe-8738-780c646c8319">
+<img width="710" alt="스크린샷 2024-01-18 오후 2 22 43" src="https://github.com/JaechanAn/hashtable/assets/13327840/6e666b66-c35f-4030-bf6a-d4bd3d380e88">
 
 ## Hash Table
 
