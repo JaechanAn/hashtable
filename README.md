@@ -67,6 +67,10 @@ Use hand-over-hand (i.e., chain) locking on access to each bucket's list instead
 - Doesn't hold a lock on a bucket so multiple traversals are possible within the same bucket.
 - Holding consecutive two locks may trigger more contention on a skewed workload.
 
+#### Option 4 - Optimistic Lock
+Like other optimistic policies, try the operation without locking assuming that conflicts are rare.
+Then, resolve conflicts when they do occur during a validation phase.
+
 ## Evaluation
 
 ### Naive Approach
