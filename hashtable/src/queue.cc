@@ -10,6 +10,7 @@ void init_queue(OperationQueue* queue) {
         queue->instructions[i].flag = 0;
         queue->instructions[i].type = Undefined;
     }
+    queue->is_ready = true;
 }
 
 void enqueue(OperationQueue* queue, int key, OperationType type) {
@@ -17,7 +18,7 @@ void enqueue(OperationQueue* queue, int key, OperationType type) {
     int slot_idx = seq % QUEUE_SIZE;
     uint64_t round = seq / QUEUE_SIZE;
 
-    while (1) {
+    while (true) {
         uint64_t flag = queue->instructions[slot_idx].flag;
         if (flag % 2 == 1) {  // queue is full
             pthread_yield();
@@ -41,7 +42,7 @@ Operation dequeue(OperationQueue* queue) {
     uint64_t round = seq / QUEUE_SIZE;
     Operation ret;
 
-    while (1) {
+    while (true) {
         uint64_t flag = queue->instructions[slot_idx].flag;
         if (flag % 2 == 0) {  // queue is empty
             pthread_yield();
@@ -59,4 +60,11 @@ Operation dequeue(OperationQueue* queue) {
     }
 
     return ret;
+}
+
+bool queue_is_empty(OperationQueue* queue) {
+    uint64_t front = __sync_fetch_and_add(&queue->front, 0);
+    uint64_t rear = __sync_fetch_and_add(&queue->rear, 0);
+
+    return ((front % QUEUE_SIZE == rear % QUEUE_SIZE) && (front / QUEUE_SIZE == rear / QUEUE_SIZE));
 }

@@ -8,14 +8,16 @@
 
 #include "queue.h"
 
-#define SHM_ID "/hashtable_program_shmem"  // MUST be the same with client
+#define SHM_ID "/hashtable_program_shm"
 
 typedef struct {
-    OperationQueue queue;  // concurrent bounded queue
-    bool is_ready;         // NOTE: only set to true after initialization of queue
+    OperationQueue queue;   // concurrent bounded queue
+    bool is_ready;          // NOTE: Set to true after server queue initialization is done
+    bool should_terminate;  // NOTE: Set to true after client workload is done
 } SharedMem;
 
 void* shm_init(void);
+void* shm_attach(void);
 void shm_free(SharedMem* area);
 
 #endif /* SHM_H_ */

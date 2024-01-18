@@ -4,12 +4,11 @@
 #include <unistd.h>
 
 #include "hashtable.h"
-
-enum InstructionType { Insert = 0, Delete = 1, Lookup = 2 };
+#include "queue.h"
 
 typedef struct ThreadArgs {
     int id;
-    InstructionType type;
+    OperationType type;
     int num_ops;
     HashTable* table;
 
@@ -26,12 +25,16 @@ void* thread_func(void* thd_args);
 
 int main(int argc, char** argv) {
     if (argc != 3) {
-        fprintf(stderr, "Usage: %s <hashtable_size> <num_operation_per_thread>\n", argv[0]);
+        fprintf(stderr, "Usage: %s <hashtable_size> <num_ops_per_thread>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
     int hashtable_size = atoi(argv[1]);
     int num_ops_per_thread = atoi(argv[2]);
+    if (hashtable_size <= 0 || num_ops_per_thread <= 0) {
+        fprintf(stderr, "<hashtable_size> and <num_ops_per_thread> must be an integer greater than 0.\n");
+        exit(EXIT_FAILURE);
+    }
 
     srand(time(NULL));
 
@@ -54,7 +57,7 @@ int main(int argc, char** argv) {
         args[i].id = i;
         args[i].num_ops = num_ops_per_thread;
         args[i].table = table;
-        args[i].type = (InstructionType)(i % 3);  // Must match enum InstructionType values
+        args[i].type = (OperationType)(i % 3);  // Must match enum OperationType values
         args[i].accumulated_insert_latency = 0;
         args[i].accumulated_delete_latency = 0;
         args[i].accumulated_lookup_latency = 0;
@@ -94,8 +97,9 @@ int main(int argc, char** argv) {
 
 void* thread_func(void* thd_args) {
     ThreadArgs* args = (ThreadArgs*)thd_args;
+
     int id = args->id;
-    InstructionType type = args->type;
+    OperationType type = args->type;
     int num_ops = args->num_ops;
     HashTable* table = args->table;
 

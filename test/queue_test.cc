@@ -18,6 +18,7 @@ typedef struct ThreadArgs {
 
 void* ProducerFunc(void* thd_args) {
     ThreadArgs* args = (ThreadArgs*)thd_args;
+
     int tid = args->id;
     OperationQueue* queue = args->queue;
 
@@ -29,11 +30,12 @@ void* ProducerFunc(void* thd_args) {
         key++;
     }
 
-    return NULL;
+    pthread_exit(NULL);
 }
 
 void* ConsumerFunc(void* thd_args) {
     ThreadArgs* args = (ThreadArgs*)thd_args;
+
     int tid = args->id;
     OperationQueue* queue = args->queue;
     bool* flag_verification = args->flag_verification;
@@ -43,7 +45,7 @@ void* ConsumerFunc(void* thd_args) {
         flag_verification[op.key] = true;
     }
 
-    return NULL;
+    pthread_exit(NULL);
 }
 
 /*

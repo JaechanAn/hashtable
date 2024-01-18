@@ -1,39 +1,97 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
 #include "hashtable.h"
+#include "queue.h"
 #include "shm.h"
 
+typedef struct ThreadArgs {
+    int id;
+    HashTable* table;
+    OperationQueue* queue;
+    bool* should_terminate;
+} ThreadArgs;
+
+// Works as workload consumer
+void* thread_func(void* thd_args) {
+    ThreadArgs* args = (ThreadArgs*)thd_args;
+
+    int tid = args->id;
+    HashTable* table = args->table;
+    OperationQueue* queue = args->queue;
+    bool* should_terminate = args->should_terminate;
+
+    // If should_terminate is true (set by client), the client is done with producing all the operations.
+    // The server still has to take care of unfinished operations within the queue.
+    while (!(*should_terminate) || !queue_is_empty(queue)) {
+        Operation op;
+        op = dequeue(queue);
+
+        printf("[Server %d] type: %d, key: %d\n", tid, (int)op.type, op.key);
+        switch (op.type) {
+            case Insert:
+                hashtable_insert(table, op.key);
+                break;
+            case Delete:
+                hashtable_delete(table, op.key);
+                break;
+            case Lookup:
+                hashtable_lookup(table, op.key);
+                break;
+            default:
+                assert(false);  // should never happen
+        }
+    }
+
+    pthread_exit(NULL);
+}
+
 int main(int argc, char** argv) {
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s <hashtable_size>\n", argv[0]);
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s <num_threads> <hashtable_size>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
-    int hashtable_size = atoi(argv[1]);
-    if (hashtable_size <= 0) {
-        fprintf(stderr, "<hashtable_size> must be greater than 0\n");
+    int num_threads = atoi(argv[1]);
+    int hashtable_size = atoi(argv[2]);
+    if (num_threads <= 0 || hashtable_size <= 0) {
+        fprintf(stderr, "<num_threads> and <hashtable_size> must be an integer greater than 0.\n");
         exit(EXIT_FAILURE);
     }
 
     // Initialize shared memory
     SharedMem* area = (SharedMem*)shm_init();
+    if (area == NULL) {
+        fprintf(stderr, "Failed to initialize shared memory.\n");
+        exit(EXIT_FAILURE);
+    }
     fprintf(stdout, "Initialized shared memory of size: %ld\n", sizeof(*area));
 
     // Setup operation queue for client/server communication
     init_queue(&area->queue);
-
-    area->is_ready = true;
 
     HashTable* table = hashtable_create(hashtable_size);
     if (table == NULL) {
         fprintf(stderr, "Failed to create hash table with %d buckets.", hashtable_size);
     }
 
-    /**
-     * TODO
-     */
+    pthread_t threads[num_threads];
+    ThreadArgs args[num_threads];
+
+    for (int i = 0; i < num_threads; i++) {
+        args[i].id = i;
+        args[i].table = table;
+        args[i].queue = &area->queue;
+        args[i].should_terminate = &area->should_terminate;
+
+        pthread_create(&threads[i], 0, thread_func, (void**)&args[i]);
+    }
+
+    for (int i = 0; i < num_threads; i++) {
+        pthread_join(threads[i], NULL);
+    }
 
     int freed = hashtable_free(table);
     if (freed != 0) {
