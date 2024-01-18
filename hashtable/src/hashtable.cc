@@ -180,12 +180,7 @@ Node* hashtable_lookup(HashTable* table, int key) {
             return curr;
         } else if (curr->key > key) {
             // Key Not found
-#ifdef COARSE_GRAINED_LOCKING
-            pthread_rwlock_unlock(&table->bucket_locks[index]);
-#elif FINE_GRAINED_LOCKING
-            pthread_rwlock_unlock(prev->lock);
-            pthread_rwlock_unlock(curr->lock);
-#endif
+            break;
         }
 
 #ifdef FINE_GRAINED_LOCKING
@@ -199,6 +194,9 @@ Node* hashtable_lookup(HashTable* table, int key) {
     pthread_rwlock_unlock(&table->bucket_locks[index]);
 #elif FINE_GRAINED_LOCKING
     pthread_rwlock_unlock(prev->lock);
+    if (curr != NULL) {
+        pthread_rwlock_unlock(curr->lock);
+    }
 #endif
 
     return NULL;
