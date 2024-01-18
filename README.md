@@ -34,7 +34,11 @@ The linked list for handling the collisions within the hash table should support
 - The list doesn't have to be sorted.
 - The tail should be always reachable from the head.
 
-#### Insert
+### Operations
+
+| Insert |     |     |     |
+|--------|-----|-----|-----|
+| ABC |   |   |   |
 
 #### Delete
 
