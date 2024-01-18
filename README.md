@@ -38,7 +38,7 @@ The linked list for handling the collisions within the hash table should support
 
 ### Design
 
-#### Option 1 - Naive Approach
+#### Option 1 - Per Bucket Lock
 Lock individual buckets.
 
 <img width="602" alt="스크린샷 2024-01-16 오후 5 45 24" src="https://github.com/JaechanAn/hashtable_server/assets/13327840/54e60fe3-dd08-46c8-98cf-656a325ccf88">
@@ -49,7 +49,7 @@ Lock individual buckets.
 - Skewed workload will increase contention on small portion of buckets
 - Not scalable
 
-#### Option 2 - Group Lock
+#### Option 2 - Bucket Group Lock
 Support a more coarse-grained locking on buckets by grouping multiple buckets to the same lock.
 
 <img width="609" alt="스크린샷 2024-01-16 오후 5 48 42" src="https://github.com/JaechanAn/hashtable_server/assets/13327840/36b0f18b-3975-46f5-921e-b380635c53d0">
