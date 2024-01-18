@@ -15,6 +15,8 @@
 
 ## Overall Design
 
+<img width="1132" alt="스크린샷 2024-01-18 오후 2 21 20" src="https://github.com/JaechanAn/hashtable/assets/13327840/dbc3078e-a063-4ffe-8738-780c646c8319">
+
 ## Hash Table
 
 ### Constraints
@@ -33,16 +35,6 @@ The linked list for handling the collisions within the hash table should support
 - If a key is deleted and never inserted, lookup should fail.
 - The list doesn't have to be sorted.
 - The tail should be always reachable from the head.
-
-### Operations
-
-| Insert |     |     |     |
-|--------|-----|-----|-----|
-| ABC |   |   |   |
-
-#### Delete
-
-#### Lookup
 
 ### Design
 
