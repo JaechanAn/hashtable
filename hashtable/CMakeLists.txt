@@ -3,6 +3,7 @@ set(HASHTABLE_SOURCE_DIR src)
 set(HASHTABLE_SOURCES
     ${HASHTABLE_SOURCE_DIR}/hashtable.cc
     ${HASHTABLE_SOURCE_DIR}/shm.cc
+    ${HASHTABLE_SOURCE_DIR}/queue.cc
     )
 
 # Headers
@@ -10,6 +11,7 @@ set(HASHTABLE_HEADER_DIR include)
 set(HASHTABLE_HEADERS
     ${HASHTABLE_HEADER_DIR}/hashtable.h
     ${HASHTABLE_HEADER_DIR}/shm.h
+    ${HASHTABLE_HEADER_DIR}/queue.h
     )
 
 add_library(hashtable STATIC ${HASHTABLE_HEADERS} ${HASHTABLE_SOURCES})

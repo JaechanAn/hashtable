@@ -5,25 +5,26 @@
 #include "hashtable.h"
 #include "shm.h"
 
-typedef struct {
-    void* area;
-    size_t size;
-} SharedMem;
-
 int main(int argc, char** argv) {
     if (argc != 2) {
         fprintf(stderr, "Usage: %s <hashtable_size>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
-    long ncores = sysconf(_SC_NPROCESSORS_ONLN);
-    printf("ncores: %ld\n", ncores);
-
     int hashtable_size = atoi(argv[1]);
+    if (hashtable_size <= 0) {
+        fprintf(stderr, "<hashtable_size> must be greater than 0\n");
+        exit(EXIT_FAILURE);
+    }
 
-    // Initialize shared memory depending on the hash table size
-    size_t shm_size = hashtable_estimate_size(hashtable_size);
-    SharedMem* shm = (SharedMem*)shm_create(shm_size);
+    // Initialize shared memory
+    SharedMem* area = (SharedMem*)shm_init();
+    fprintf(stdout, "Initialized shared memory of size: %ld\n", sizeof(*area));
+
+    // Setup operation queue for client/server communication
+    init_queue(&area->queue);
+
+    area->is_ready = true;
 
     HashTable* table = hashtable_create(hashtable_size);
     if (table == NULL) {
@@ -39,7 +40,7 @@ int main(int argc, char** argv) {
         fprintf(stderr, "Failed to free hash table.");
     }
 
-    shm_free(shm, shm_size);
+    shm_free(area);
 
     return EXIT_SUCCESS;
 }

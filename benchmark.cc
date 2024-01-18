@@ -5,11 +5,11 @@
 
 #include "hashtable.h"
 
-enum WorkloadType { Insert = 0, Delete = 1, Lookup = 2 };
+enum InstructionType { Insert = 0, Delete = 1, Lookup = 2 };
 
 typedef struct ThreadArgs {
     int id;
-    WorkloadType type;
+    InstructionType type;
     int num_ops;
     HashTable* table;
 
@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
         args[i].id = i;
         args[i].num_ops = num_ops_per_thread;
         args[i].table = table;
-        args[i].type = (WorkloadType)(i % 3);  // Must match enum WorkloadType values
+        args[i].type = (InstructionType)(i % 3);  // Must match enum InstructionType values
         args[i].accumulated_insert_latency = 0;
         args[i].accumulated_delete_latency = 0;
         args[i].accumulated_lookup_latency = 0;
@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
 void* thread_func(void* thd_args) {
     ThreadArgs* args = (ThreadArgs*)thd_args;
     int id = args->id;
-    WorkloadType type = args->type;
+    InstructionType type = args->type;
     int num_ops = args->num_ops;
     HashTable* table = args->table;
 
