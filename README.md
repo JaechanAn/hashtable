@@ -49,17 +49,15 @@ Lock individual buckets.
 **Cons**
 - Managing multiple locks
 
-#### Option 2
+#### Option 2 - Group Lock
 Support a more coarse-grained locking on buckets by grouping multiple buckets to the same lock.
 
 <img width="609" alt="스크린샷 2024-01-16 오후 5 48 42" src="https://github.com/JaechanAn/hashtable_server/assets/13327840/36b0f18b-3975-46f5-921e-b380635c53d0">
 
-#### Option 3
+#### Option 3 - Hand-over-hand Lock
 Use hand-over-hand (i.e., chain) locking on access to each bucket's list instead of using bucket based locking.
 
 <img width="797" alt="스크린샷 2024-01-16 오후 5 53 21" src="https://github.com/JaechanAn/hashtable_server/assets/13327840/848ebb22-7960-4edf-a087-82490f4c7472">
-
-## Client / Server Communication
 
 ## Evaluation
 
