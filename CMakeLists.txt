@@ -20,8 +20,8 @@ option(USE_HASHTABLE "Use the Hash Table library" ON)
 option(USE_GOOGLE_TEST "Use GoogleTest for testing" ON)
 
 # Enable or disable to change concurrency policy
-#add_compile_definitions(COARSE_GRAINED_LOCKING)
-add_compile_definitions(FINE_GRAINED_LOCKING)
+add_compile_definitions(BUCKET_LOCKING)
+#add_compile_definitions(CHAIN_LOCKING)
 
 # HashTable project library
 if(USE_HASHTABLE)
