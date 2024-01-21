@@ -1,4 +1,16 @@
 # Hash Table Server
+Currently supports the following versions.
+
+
+:green_circle: supported, :x: not supported, :keyboard: developing
+
+| Mode | Status |
+|------|--------|
+| Per bucket locking | :green_circle: |
+| Group bucket locking | :x: |
+| Hand-over-hand locking | :green_circle: |
+| Optimistic locking | :green_circle: |
+| Lock-free | :keyboard: |
 
 ## How to Build & Run
 
