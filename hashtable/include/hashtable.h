@@ -7,7 +7,7 @@
 typedef struct Node {
     int key;            // currently supports integer key only
     struct Node* next;  // next pointer for handling linked list style chaining
-#ifdef CHAIN_LOCKING
+#if defined(CHAIN_LOCKING) || defined(OPTIMISTIC_LOCKING)
     pthread_rwlock_t* lock;
 #endif
 } Node;
@@ -51,5 +51,11 @@ int hashtable_delete(HashTable* table, int key);
 
 // For debugging.
 void hashtable_print(HashTable* table);
+
+int hashtable_size(HashTable* table);
+
+#ifdef OPTIMISTIC_LOCKING
+bool validate(Node* bucket, Node* prev, Node* curr);
+#endif
 
 #endif  // HASHTABLE_H_

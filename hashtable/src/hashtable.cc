@@ -12,7 +12,7 @@ Node* init_node() {
     node->key = -1;
     node->next = NULL;
 
-#ifdef CHAIN_LOCKING
+#if defined(CHAIN_LOCKING) || defined(OPTIMISTIC_LOCKING)
     node->lock = (pthread_rwlock_t*)malloc(sizeof(pthread_rwlock_t));
     assert(node->lock != NULL);
 
@@ -45,7 +45,7 @@ HashTable* hashtable_create(int size) {
     table->size = size;
 
     for (int i = 0; i < size; ++i) {
-        // For each bucket, we include an empty head node for convenience
+        // For each bucket, we include an empty head (sentinel) node for convenience
         Node* head = init_node();
         table->buckets[i] = head;
 
@@ -120,6 +120,21 @@ Node* hashtable_insert(HashTable* table, int key) {
 
     assert(prev != NULL);
 
+#ifdef OPTIMISTIC_LOCKING
+    pthread_rwlock_wrlock(prev->lock);
+    if (curr != NULL) {
+        pthread_rwlock_wrlock(curr->lock);
+    }
+
+    if (!validate(bucket, prev, curr)) {
+        pthread_rwlock_unlock(prev->lock);
+        if (curr != NULL) {
+            pthread_rwlock_unlock(curr->lock);
+        }
+        return NULL;
+    }
+#endif
+
     Node* new_node = init_node();
     new_node->key = key;
     new_node->next = curr;
@@ -127,7 +142,7 @@ Node* hashtable_insert(HashTable* table, int key) {
 
 #ifdef BUCKET_LOCKING
     pthread_rwlock_unlock(&table->bucket_locks[index]);
-#elif CHAIN_LOCKING
+#elif defined(CHAIN_LOCKING) || defined(OPTIMISTIC_LOCKING)
     pthread_rwlock_unlock(prev->lock);
     if (curr != NULL) {
         pthread_rwlock_unlock(curr->lock);
@@ -244,6 +259,17 @@ int hashtable_delete(HashTable* table, int key) {
         return -1;
     }
 
+#ifdef OPTIMISTIC_LOCKING
+    pthread_rwlock_wrlock(prev->lock);
+    pthread_rwlock_wrlock(curr->lock);
+
+    if (!validate(bucket, prev, curr)) {
+        pthread_rwlock_unlock(prev->lock);
+        pthread_rwlock_unlock(curr->lock);
+        return -1;
+    }
+#endif
+
     // logical deletion
     prev->next = curr->next;
     curr->next = NULL;
@@ -251,13 +277,17 @@ int hashtable_delete(HashTable* table, int key) {
 #ifdef BUCKET_LOCKING
     // release before physical deletion
     pthread_rwlock_unlock(&table->bucket_locks[index]);
-#elif CHAIN_LOCKING
+#elif defined(CHAIN_LOCKING) || defined(OPTIMISTIC_LOCKING)
     pthread_rwlock_unlock(prev->lock);
     pthread_rwlock_unlock(curr->lock);
 #endif
 
+// TODO: Handle separate garbage collection for optimistic locking.
+// The traversals do not acquire lock, creating memory access issues when free.
+#ifndef OPTIMISTIC_LOCKING
     // phyisical deletion
     free(curr);
+#endif
 
     return 0;
 }
@@ -277,3 +307,41 @@ void hashtable_print(HashTable* table) {
         printf("(NULL)\n");
     }
 }
+
+int hashtable_size(HashTable* table) {
+    int count = 0;
+    for (int i = 0; i < table->size; ++i) {
+        Node* curr = table->buckets[i]->next;
+        while (curr != NULL) {
+            ++count;
+            curr = curr->next;
+        }
+    }
+    return count;
+}
+
+#ifdef OPTIMISTIC_LOCKING
+bool validate(Node* bucket, Node* prev, Node* curr) {
+    // 1) Check if the prev node is reachable from head
+    Node* tmp = bucket;
+    while (tmp != NULL) {
+        if (tmp == prev) {
+            break;
+        }
+        tmp = tmp->next;
+    }
+
+    if (tmp == NULL) {
+        // Somebody deleted prev before acquiring lock
+        return false;
+    }
+
+    // 2) Check if prev and curr is still adjacent
+    if (prev->next != curr) {
+        // Somebody inserted in between the two nodes before acquiring lock
+        return false;
+    }
+
+    return true;
+}
+#endif
