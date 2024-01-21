@@ -5,6 +5,7 @@
 ```sh
 # Requires cmake
 # 1. Clone the repository
+git clone https://github.com/JaechanAn/hashtable.git
 
 # 2. Create a build directory
 mkdir build
