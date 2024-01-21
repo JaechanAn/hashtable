@@ -1,5 +1,32 @@
 # Hash Table Server
 
+## How to Build & Run
+
+```sh
+# Requires cmake
+# 1. Clone the repository
+
+# 2. Create a build directory
+mkdir build
+cd build
+
+# 3. Build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+
+# 4. Run
+cd bin
+
+# 4-1. Ordinary server/client program execution
+./server <hashtable_size>
+./client <num_threads> <num_ops_per_thread>
+
+# 4-2. Tests on basic function correctness
+./hashtable_test
+
+# 4-3. Run a simple performance benchmark
+./benchmark
+```
+
 ## Required Spec
 
 **Server**
