@@ -2,7 +2,7 @@
 Currently supports the following versions.
 
 
-:green_circle: supported, :x: not supported, :keyboard: developing
+:green_circle: : supported, :x: : not supported, :keyboard: : developing
 
 | Mode | Status |
 |------|--------|
