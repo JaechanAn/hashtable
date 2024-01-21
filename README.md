@@ -102,8 +102,8 @@ Then, resolve conflicts when they do occur during a validation phase.
 Example of delete
 1. Traverse without locks
 2. Lock the consecutive nodes, predecessor, and the node to remove.
-3. Check if the predecessor is still reachable from the head. (making sure that it wasn't removed before acquiring the lock)
-4. Check if the node to delete is still pointed by the predecessor.
+3. Check if the predecessor is still reachable from the head, making sure that the predecessor wasn't deleted before acquiring the lock.
+4. Check if the node to delete is still pointed by the predecessor, making sure that nothing was inserted in between before acquiring the lock.
 5. Remove the node and release locks.
 
 ## Evaluation
