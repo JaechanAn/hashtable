@@ -62,7 +62,7 @@ cd bin
 
 ## Overall Design
 
-The server is responsible for initializing the shared memory area. Once the shared memory area is initialized and attached, the server waits for the client to join and produce workloads. The server and client communicate through the shared memory area, where a bounded-size concurrent queue handles the producer/consumer mechanism. Once the client finishes sending all the jobs, the client terminates. The server takes care of the remaining jobs and terminates.
+The server is responsible for initializing the shared memory area. Once the shared memory area is initialized and attached, the server waits for the client to join and produce workloads. The server and client communicate through the shared memory area, where a bounded-size concurrent queue handles the producer/consumer mechanism. Once the client finishes sending all the jobs, the client terminates. The server takes care of the remaining jobs and terminates. The hash table resides on the server's memory.
 
 <img width="710" alt="스크린샷 2024-01-18 오후 2 22 43" src="https://github.com/JaechanAn/hashtable/assets/13327840/6e666b66-c35f-4030-bf6a-d4bd3d380e88">
 
