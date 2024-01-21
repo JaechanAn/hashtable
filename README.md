@@ -108,11 +108,14 @@ Example of delete
 
 ## Evaluation
 
-### Naive Approach
+### Bucket locking
 
 <img width="752" alt="image" src="https://github.com/JaechanAn/hashtable_server/assets/13327840/5ddd7128-9a32-4ab2-8a27-fb94001609e4">
 
-### Hand-over-hand locking
+### Chain (hand-over-hand) locking
 
 <img width="755" alt="image" src="https://github.com/JaechanAn/hashtable_server/assets/13327840/112cbd90-cf41-4c24-93af-df4d3b62c2e1">
 
+### Optimistic locking
+
+<img width="716" alt="image" src="https://github.com/JaechanAn/hashtable/assets/13327840/c5c9e308-ca76-4cb4-a923-6b23088ba341">
