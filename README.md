@@ -25,7 +25,7 @@ cd bin
 ./hashtable_test
 
 # 4-3. Run a simple performance benchmark
-./benchmark
+./benchmark <hashtable_size> <num_ops_per_thread>
 ```
 
 ## Required Spec
