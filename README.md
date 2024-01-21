@@ -4,13 +4,19 @@ Currently supports the following versions.
 
 :green_circle: : supported, :x: : not supported, :keyboard: : implementing
 
-| Mode | Status |
+| Concurrency Policy | Status |
 |------|--------|
 | Per bucket locking | :green_circle: |
 | Group bucket locking | :x: |
 | Hand-over-hand locking | :green_circle: |
 | Optimistic locking | :green_circle: |
 | Lock-free | :keyboard: |
+
+To build for a different concurrency policy, change the `add_compile_definitions({policy})` command in `CMakeLists.txt`
+```cmake
+#add_compile_definitions(BUCKET_LOCKING) # enable implementation of a naive bucket lock
+add_compile_definitions(OPTIMISTIC_LOCKING) # enable implementation of an optimistic lock
+```
 
 ## How to Build & Run
 
@@ -25,6 +31,7 @@ cd build
 
 # 3. Build
 cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake --build . -j
 
 # 4. Run
 cd bin
