@@ -62,6 +62,8 @@ cd bin
 
 ## Overall Design
 
+The server is responsible for initializing the shared memory area. Once the shared memory area is initialized and attached, the server waits for the client to join and produce workloads. The server and client communicate through the shared memory area, where a bounded-size concurrent queue handles the producer/consumer mechanism. Once the client finishes sending all the jobs, the client terminates. The server takes care of the remaining jobs and terminates.
+
 <img width="710" alt="스크린샷 2024-01-18 오후 2 22 43" src="https://github.com/JaechanAn/hashtable/assets/13327840/6e666b66-c35f-4030-bf6a-d4bd3d380e88">
 
 ## Hash Table
@@ -80,7 +82,7 @@ The linked list for handling the collisions within the hash table should support
 - Forbid duplicate keys for insertion.
 - If a key is inserted and never deleted, lookup should succeed.
 - If a key is deleted and never inserted, lookup should fail.
-- The list doesn't have to be sorted.
+- The list has to be sorted.
 - The tail should be always reachable from the head.
 
 ### Design
