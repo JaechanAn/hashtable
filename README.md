@@ -37,7 +37,7 @@ cmake --build . -j
 cd bin
 
 # 4-1. Ordinary server/client program execution
-./server <hashtable_size>
+./server <hashtable_size> # must execute server before client
 ./client <num_threads> <num_ops_per_thread>
 
 # 4-2. Tests on basic function correctness
