@@ -106,6 +106,9 @@ Example of delete
 4. Check if the node to delete is still pointed by the predecessor, making sure that nothing was inserted in between before acquiring the lock.
 5. Remove the node and release locks.
 
+
+#### Option 5 - Lock-free Structure
+
 ## Evaluation
 
 ### Bucket locking
