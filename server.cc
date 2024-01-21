@@ -99,10 +99,14 @@ int main(int argc, char** argv) {
         fprintf(stderr, "Failed to create hash table with %d buckets.", hashtable_size);
     }
 
-    area->server_is_ready = true;
+    fprintf(stdout, "Server is ready, waiting for client connection...\n");
 
+    area->server_is_ready = true;
     while (!area->client_is_ready) {
+        usleep(100000);  // sleep 100 ms
     }
+
+    fprintf(stdout, "Client is ready! Executing operations from client.\n");
 
     pthread_t threads[area->num_threads];
     ThreadArgs args[area->num_threads];

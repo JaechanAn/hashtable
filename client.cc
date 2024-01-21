@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "queue.h"
 #include "shm.h"
@@ -74,13 +75,20 @@ int main(int argc, char** argv) {
         exit(EXIT_FAILURE);
     }
 
+    fprintf(stdout, "Waiting for server...\n");
+
     while (!area->server_is_ready) {
+        usleep(100000);  // sleep 100 ms
     }
+
+    fprintf(stdout, "Server is ready, preparing client.\n");
 
     area->num_threads = num_threads;
     area->num_ops_per_thread = num_ops_per_thread;
 
     area->client_is_ready = true;
+
+    fprintf(stdout, "Client is ready! Sending operations to server.\n");
 
     pthread_t threads[num_threads];
     ThreadArgs args[num_threads];
