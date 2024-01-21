@@ -12,7 +12,7 @@ pthread_mutex_t worker_mutex = PTHREAD_MUTEX_INITIALIZER;
 // For controlling the main thread
 pthread_cond_t main_cond = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t main_mutex = PTHREAD_MUTEX_INITIALIZER;
-int not_done;  // last worker will signal the main thread, should set it to num_threads
+int left_over;  // last worker will signal the main thread, should set it to num_threads
 
 typedef struct ThreadArgs {
     int id;
@@ -32,7 +32,7 @@ void* thread_func(void* thd_args) {
     // Wait until all workers are generated
     pthread_mutex_lock(&worker_mutex);
     args->is_ready = true;  // This is necessary since main thread might surpass the worker thread sleep
-    pthread_cond_wait(&worker_cond, &worker_mutex);
+    pthread_cond_wait(&worker_cond, &worker_mutex);  // Worker threads awoken while main_mutex held by main thread
     pthread_mutex_unlock(&worker_mutex);
 
     for (int i = 0; i < num_ops; i++) {
@@ -42,8 +42,9 @@ void* thread_func(void* thd_args) {
         enqueue(queue, key, type);
     }
 
-    int order = __sync_sub_and_fetch(&not_done, 1);
+    int order = __sync_sub_and_fetch(&left_over, 1);
     if (order == 0) {  // last thread exiting should wakeup the main thread
+        // if success, main_mutex should be released, meaning that main thread is asleep
         pthread_mutex_lock(&main_mutex);
         pthread_cond_signal(&main_cond);
         pthread_mutex_unlock(&main_mutex);
@@ -73,15 +74,18 @@ int main(int argc, char** argv) {
         exit(EXIT_FAILURE);
     }
 
-    if (!area->queue.is_ready) {
-        fprintf(stderr, "Server isn't running\n");
-        exit(EXIT_FAILURE);
+    while (!area->server_is_ready) {
     }
+
+    area->num_threads = num_threads;
+    area->num_ops_per_thread = num_ops_per_thread;
+
+    area->client_is_ready = true;
 
     pthread_t threads[num_threads];
     ThreadArgs args[num_threads];
 
-    not_done = num_threads;
+    left_over = num_threads;
 
     for (int i = 0; i < num_threads; i++) {
         args[i].id = i;
@@ -99,21 +103,22 @@ int main(int argc, char** argv) {
 
     // Wake the worker threads waiting on the condition variable
     pthread_mutex_lock(&worker_mutex);
+
+    // Acquire main mutex before waking up worker threads to prevent all workers from
+    // terminating before main thread asleep.
+    pthread_mutex_lock(&main_mutex);
+
+    // Awake worker threads
     pthread_cond_broadcast(&worker_cond);
     pthread_mutex_unlock(&worker_mutex);
 
-    // Sleep wait for all workers to finish
-    pthread_mutex_lock(&main_mutex);
+    // Main thread asleep
     pthread_cond_wait(&main_cond, &main_mutex);
     pthread_mutex_unlock(&main_mutex);
 
     for (int i = 0; i < num_threads; i++) {
         pthread_join(threads[i], NULL);
     }
-
-    // From this point, it is guaranteed to the server that no more operation is produced.
-    // However, the server has to take care of the remaining operations within the queue.
-    area->should_terminate = true;
 
     return EXIT_SUCCESS;
 }

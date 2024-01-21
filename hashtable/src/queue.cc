@@ -66,5 +66,5 @@ bool queue_is_empty(OperationQueue* queue) {
     uint64_t front = __sync_fetch_and_add(&queue->front, 0);
     uint64_t rear = __sync_fetch_and_add(&queue->rear, 0);
 
-    return ((front % QUEUE_SIZE == rear % QUEUE_SIZE) && (front / QUEUE_SIZE == rear / QUEUE_SIZE));
+    return front == rear;
 }

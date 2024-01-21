@@ -11,12 +11,15 @@
 #define SHM_ID "/hashtable_program_shm"
 
 typedef struct {
-    OperationQueue queue;   // concurrent bounded queue
-    bool is_ready;          // NOTE: Set to true after server queue initialization is done
-    bool should_terminate;  // NOTE: Set to true after client workload is done
+    OperationQueue queue;    // concurrent bounded queue
+    int num_threads;         // number of threads
+    int num_ops_per_thread;  // number of operations per thread
+    bool client_is_ready;
+    bool server_is_ready;
 } SharedMem;
 
-void* shm_init(void);
+void* shm_create(void);
+void shm_init(SharedMem* area);
 void* shm_attach(void);
 void shm_free(SharedMem* area);
 

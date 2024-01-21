@@ -14,13 +14,13 @@ pthread_mutex_t worker_mutex = PTHREAD_MUTEX_INITIALIZER;
 // For controlling the main thread
 pthread_cond_t main_cond = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t main_mutex = PTHREAD_MUTEX_INITIALIZER;
-int not_done;  // last worker will signal the main thread, should set it to num_threads
+int left_over;  // last worker will signal the main thread, should set it to num_threads
 
 typedef struct ThreadArgs {
     int id;
     HashTable* table;
     OperationQueue* queue;
-    bool* should_terminate;
+    int num_ops;
     bool is_ready;
 } ThreadArgs;
 
@@ -31,7 +31,7 @@ void* thread_func(void* thd_args) {
     int tid = args->id;
     HashTable* table = args->table;
     OperationQueue* queue = args->queue;
-    bool* should_terminate = args->should_terminate;
+    int num_ops = args->num_ops;
 
     // Wait until all workers are generated
     pthread_mutex_lock(&worker_mutex);
@@ -39,9 +39,7 @@ void* thread_func(void* thd_args) {
     pthread_cond_wait(&worker_cond, &worker_mutex);
     pthread_mutex_unlock(&worker_mutex);
 
-    // If should_terminate is true (set by client), the client is done with producing all the operations.
-    // The server still has to take care of unfinished operations within the queue.
-    while (!(*should_terminate) || !queue_is_empty(queue)) {
+    for (int i = 0; i < num_ops; i++) {
         Operation op;
         op = dequeue(queue);
 
@@ -61,7 +59,7 @@ void* thread_func(void* thd_args) {
         }
     }
 
-    int order = __sync_sub_and_fetch(&not_done, 1);
+    int order = __sync_sub_and_fetch(&left_over, 1);
     if (order == 0) {  // last thread exiting should wakeup the main thread
         pthread_mutex_lock(&main_mutex);
         pthread_cond_signal(&main_cond);
@@ -72,25 +70,26 @@ void* thread_func(void* thd_args) {
 }
 
 int main(int argc, char** argv) {
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s <num_threads> <hashtable_size>\n", argv[0]);
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <hashtable_size>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
-    int num_threads = atoi(argv[1]);
-    int hashtable_size = atoi(argv[2]);
-    if (num_threads <= 0 || hashtable_size <= 0) {
-        fprintf(stderr, "<num_threads> and <hashtable_size> must be an integer greater than 0.\n");
+    int hashtable_size = atoi(argv[1]);
+    if (hashtable_size <= 0) {
+        fprintf(stderr, "<hashtable_size> must be an integer greater than 0.\n");
         exit(EXIT_FAILURE);
     }
 
     // Initialize shared memory
-    SharedMem* area = (SharedMem*)shm_init();
+    SharedMem* area = (SharedMem*)shm_create();
     if (area == NULL) {
         fprintf(stderr, "Failed to initialize shared memory.\n");
         exit(EXIT_FAILURE);
     }
     fprintf(stdout, "Initialized shared memory of size: %ld\n", sizeof(*area));
+
+    shm_init(area);
 
     // Setup operation queue for client/server communication
     init_queue(&area->queue);
@@ -100,16 +99,21 @@ int main(int argc, char** argv) {
         fprintf(stderr, "Failed to create hash table with %d buckets.", hashtable_size);
     }
 
-    pthread_t threads[num_threads];
-    ThreadArgs args[num_threads];
+    area->server_is_ready = true;
 
-    not_done = num_threads;
+    while (!area->client_is_ready) {
+    }
 
-    for (int i = 0; i < num_threads; i++) {
+    pthread_t threads[area->num_threads];
+    ThreadArgs args[area->num_threads];
+
+    left_over = area->num_threads;
+
+    for (int i = 0; i < area->num_threads; i++) {
         args[i].id = i;
         args[i].table = table;
         args[i].queue = &area->queue;
-        args[i].should_terminate = &area->should_terminate;
+        args[i].num_ops = area->num_ops_per_thread;
         args[i].is_ready = false;
 
         pthread_create(&threads[i], 0, thread_func, (void**)&args[i]);
@@ -122,15 +126,20 @@ int main(int argc, char** argv) {
 
     // Wake the worker threads waiting on the condition variable
     pthread_mutex_lock(&worker_mutex);
+
+    // Acquire main mutex before waking up worker threads to prevent all workers from
+    // terminating before main thread asleep.
+    pthread_mutex_lock(&main_mutex);
+
+    // Awake worker threads
     pthread_cond_broadcast(&worker_cond);
     pthread_mutex_unlock(&worker_mutex);
 
-    // Sleep wait for all workers to finish
-    pthread_mutex_lock(&main_mutex);
+    // Main thread asleep
     pthread_cond_wait(&main_cond, &main_mutex);
     pthread_mutex_unlock(&main_mutex);
 
-    for (int i = 0; i < num_threads; i++) {
+    for (int i = 0; i < area->num_threads; i++) {
         pthread_join(threads[i], NULL);
     }
 

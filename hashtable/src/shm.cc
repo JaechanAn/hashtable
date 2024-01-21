@@ -2,10 +2,11 @@
 
 #include <assert.h>
 #include <fcntl.h>
+#include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
-void* shm_init(void) {
+void* shm_create(void) {
     size_t size = sizeof(SharedMem);
 
     int protection = PROT_READ | PROT_WRITE;
@@ -25,6 +26,8 @@ void* shm_init(void) {
 
     return area;
 }
+
+void shm_init(SharedMem* area) { memset(area, 0, sizeof(SharedMem)); }
 
 void* shm_attach(void) {
     size_t size = sizeof(SharedMem);
