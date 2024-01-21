@@ -5,6 +5,8 @@
 
 #include <string>
 
+#define MAX_ITERATION (1000)
+
 /*******************************************************************************
  * NOTE from TA: Jaechan An
  * The test structures stated here were written to give you and idea of what a
@@ -64,12 +66,12 @@ protected:
  */
 TEST_F(HashTableBasicTest, Insert) {
     // Test should succeed
-    for (int i = 0; i < 1000; ++i) {
+    for (int i = 0; i < MAX_ITERATION; ++i) {
         Node* inserted_node = hashtable_insert(table, i);
         ASSERT_TRUE(inserted_node != NULL);
     }
 
-    for (int i = 0; i < 1000; ++i) {
+    for (int i = 0; i < MAX_ITERATION; ++i) {
         Node* found = hashtable_lookup(table, i);
         ASSERT_TRUE(found != NULL);
     }
@@ -86,12 +88,12 @@ TEST_F(HashTableBasicTest, Insert) {
  */
 TEST_F(HashTableBasicTest, Delete) {
     // Test should succeed
-    for (int i = 0; i < 1000; ++i) {
+    for (int i = 0; i < MAX_ITERATION; ++i) {
         Node* inserted_node = hashtable_insert(table, i);
         ASSERT_TRUE(inserted_node != NULL);
     }
 
-    for (int i = 0; i < 1000; ++i) {
+    for (int i = 0; i < MAX_ITERATION; ++i) {
         int deleted = hashtable_delete(table, i);
         ASSERT_EQ(deleted, 0);
     }
@@ -101,7 +103,7 @@ TEST_F(HashTableBasicTest, Delete) {
     ASSERT_EQ(should_fail, -1);
 }
 
-#if defined(COARSE_GRAINED_LOCKING) || defined(FINE_GRAINED_LOCKING)
+#if defined(BUCKET_LOCKING) || defined(CHAIN_LOCKING) || defined(OPTIMISTIC_LOCKING)
 /*
  * TestFixture for hash table concurrency test
  */
@@ -144,6 +146,23 @@ void* insert_one_func(void* thd_args) {
     pthread_exit(NULL);
 }
 
+void* insert_many_func(void* thd_args) {
+    ThreadArgs* args = (ThreadArgs*)thd_args;
+    int id = args->id;
+    HashTable* table = args->table;
+
+    int start = id * MAX_ITERATION;
+    int end = (id + 1) * MAX_ITERATION;
+    for (int i = start; i < end; ++i) {
+        Node* node = NULL;
+        while (node == NULL) {  // optimistic locking may fail
+            node = hashtable_insert(table, i);
+        }
+    }
+
+    pthread_exit(NULL);
+}
+
 void* delete_one_func(void* thd_args) {
     ThreadArgs* args = (ThreadArgs*)thd_args;
     int id = args->id;
@@ -151,6 +170,23 @@ void* delete_one_func(void* thd_args) {
 
     int result = hashtable_delete(table, 1);
     args->result = result;
+
+    pthread_exit(NULL);
+}
+
+void* delete_many_func(void* thd_args) {
+    ThreadArgs* args = (ThreadArgs*)thd_args;
+    int id = args->id;
+    HashTable* table = args->table;
+
+    int start = id * MAX_ITERATION;
+    int end = (id + 1) * MAX_ITERATION;
+    for (int i = start; i < end; ++i) {
+        int ret = -1;
+        while (ret == -1) {  // optimistic locking may fail
+            ret = hashtable_delete(table, i);
+        }
+    }
 
     pthread_exit(NULL);
 }
@@ -183,6 +219,31 @@ TEST_F(HashTableConcurrencyTest, Insert) {
     ASSERT_EQ(cnt, 1);  // Only one item should succeed in inserting.
 }
 
+TEST_F(HashTableConcurrencyTest, InsertMany) {
+    int num_threads = ncores * 2;
+
+    pthread_t threads[num_threads];
+    ThreadArgs args[num_threads];
+
+    for (int i = 0; i < num_threads; i++) {
+        args[i].id = i;
+        args[i].table = table;
+        pthread_create(&threads[i], NULL, insert_many_func, (void**)&args[i]);
+    }
+
+    for (int i = 0; i < num_threads; i++) {
+        pthread_join(threads[i], NULL);
+    }
+
+    for (int i = 0; i < num_threads * MAX_ITERATION; ++i) {
+        Node* node = hashtable_lookup(table, i);
+        ASSERT_TRUE(node != NULL);
+    }
+
+    int count = hashtable_size(table);
+    ASSERT_EQ(count, num_threads * MAX_ITERATION);
+}
+
 /*
  * Test concurrent deletion
  * 1. Insert key '1'.
@@ -213,5 +274,38 @@ TEST_F(HashTableConcurrencyTest, Delete) {
         }
     }
     ASSERT_EQ(cnt, 1);  // Only one item should succeed in deleting.
+}
+
+TEST_F(HashTableConcurrencyTest, DeleteMany) {
+    int num_threads = ncores * 2;
+
+    pthread_t threads[num_threads];
+    ThreadArgs args[num_threads];
+
+    // Insert all keys from 0 ~ num_threads * MAX_ITERATION
+    for (int i = 0; i < num_threads * MAX_ITERATION; ++i) {
+        Node* node = hashtable_insert(table, i);
+        ASSERT_TRUE(node != NULL);
+    }
+
+    // Delete all keys from 0 ~ num_threads * MAX_ITERATION
+    for (int i = 0; i < num_threads; i++) {
+        args[i].id = i;
+        args[i].table = table;
+        pthread_create(&threads[i], NULL, delete_many_func, (void**)&args[i]);
+    }
+
+    for (int i = 0; i < num_threads; i++) {
+        pthread_join(threads[i], NULL);
+    }
+
+    // Search all keys from 0 ~ num_threads * MAX_ITERATION, none found
+    for (int i = 0; i < num_threads * MAX_ITERATION; ++i) {
+        Node* node = hashtable_lookup(table, i);
+        ASSERT_TRUE(node == NULL);
+    }
+
+    int count = hashtable_size(table);
+    ASSERT_EQ(count, 0);
 }
 #endif
